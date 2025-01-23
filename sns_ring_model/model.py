@@ -74,9 +74,9 @@ from orbit.utils import consts
 from orbit.utils.consts import mass_proton
 from orbit.utils.consts import speed_of_light
 
-from .utils import get_node_by_name_any_case
-from .utils import get_nodes_by_name_any_case
-from .utils import rename_nodes_avoid_duplicates
+from sns_ring_model.utils import get_node_by_name_any_case
+from sns_ring_model.utils import get_nodes_by_name_any_case
+from sns_ring_model.utils import rename_nodes_avoid_duplicates
 
 
 # Node parts (these are integers 0, 1, 2)

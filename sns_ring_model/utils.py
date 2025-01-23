@@ -24,19 +24,24 @@ def get_nodes_by_name_any_case(lattice: AccLattice, names: list[str]) -> list[Ac
 def rename_nodes_avoid_duplicates(
     lattice: AccLattice,
     verbose: bool = False,
-    delimiter="_",
+    delimiter: str = "_",
 ) -> AccLattice:
     node_names = [node.getName() for node in lattice.getNodes()]
-    counter = Counter(node_names)
+
+    counts = Counter(node_names)
     if verbose:
-        pprint(counter)
-    for name, count in counter.items():
-        if count > 1:
-            for index, node in enumerate(lattice.getNodes()):
-                if node.getName() == name:
-                    old_name = node.getName()
-                    new_name = f"{old_name}_{index}"
-                    if verbose:
-                        print(f"index={index} {old_name} -> {new_name}")
-                    node.setName(new_name)
+        pprint(counts)
+
+    duplicate_names = [key for key in counts if counts[key] > 1]
+
+    for duplicate_name in duplicate_names:
+        index = 0
+        for node in lattice.getNodes():
+            if node.getName() == duplicate_name:
+                old_name = node.getName()
+                new_name = f"{old_name}{delimiter}{index:02.0f}"
+                if verbose:
+                    print(f"index={index} {old_name} -> {new_name}")
+                node.setName(new_name)
+                index += 1
     return lattice

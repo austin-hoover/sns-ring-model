@@ -2,8 +2,6 @@
 import os
 from pprint import pprint
 
-import pandas
-
 from orbit.core.aperture import Aperture
 from orbit.core.bunch import Bunch
 from orbit.core.collimator import Collimator
@@ -29,9 +27,8 @@ from orbit.teapot import TEAPOT_Lattice
 from orbit.teapot import TEAPOT_Ring
 from orbit.teapot import DriftTEAPOT
 
-from sns_orbit_models.ring.model import SNS_RING
-from sns_orbit_models.ring.model import rename_nodes_avoid_duplicates
-from sns_orbit_models.ring.utils import get_node_by_name_any_case
+from sns_ring_model.model import SNS_RING
+from sns_ring_model.utils import rename_nodes_avoid_duplicates
 
 
 ENTRANCE = AccNode.ENTRANCE
