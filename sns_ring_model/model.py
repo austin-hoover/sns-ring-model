@@ -141,7 +141,7 @@ def read_transverse_impedance_file(path: str) -> tuple[list[complex]]:
 
 def read_lattice_file(lattice: AccLattice, filename: str, filetype: str, seq: str) -> AccLattice:
     if not os.path.exists(filename):
-        raise FileNotFoundErro
+        raise FileNotFoundError
         
     if filetype.lower() == "madx":
         lattice.readMADX(filename, seq)
