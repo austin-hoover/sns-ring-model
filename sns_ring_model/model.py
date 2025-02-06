@@ -238,7 +238,7 @@ class SNS_RING(AccModel):
 
         # Read lattice file
         if self.lattice_file == "default":
-            self.lattice_file = self.path.parent.joinpath("./mad/sns_ring_mad.lattice")
+            self.lattice_file = self.path.parent.joinpath("./mad/sns_ring_mad.lat")
             self.lattice_file_type = "mad"
             self.lattice_seq = "RINGINJ"
             
