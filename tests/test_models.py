@@ -10,6 +10,7 @@ from sns_ring_model import InjectionController
 
 def test_model():
     model = SNS_RING(lattice_file="default")
+    model.add_rf_cavity_nodes()
 
 
 def test_add_apertures():

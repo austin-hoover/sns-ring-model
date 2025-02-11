@@ -553,35 +553,35 @@ class SNS_RING(AccModel):
 
     def add_rf_cavity_nodes(
         self,
-        voltage_1a: float = 0.000002,
-        voltage_1b: float = 0.000002,
-        voltage_1c: float = 0.000002,
-        voltage_2: float = -0.000004,
-        hnum_1a: float = 1.0,
-        hnum_1b: float = 1.0,
-        hnum_1c: float = 1.0,
-        hnum_2: float = 2.0,
-        phase_1a: float = 0.0,
-        phase_1b: float = 0.0,
-        phase_1c: float = 0.0,
+        voltage_1: float = -0.000006,
+        voltage_2: float = +0.0,
+        voltage_3: float = -0.0,
+        voltage_4: float = -0.000004,
+        hnum_1: float = 1.0,
+        hnum_2: float = 1.0,
+        hnum_3: float = 2.0,
+        hnum_4: float = 2.0,
+        phase_1: float = 0.0,
         phase_2: float = 0.0,
-        position_1a: float = 184.273,
-        position_1b: float = 186.571,
-        position_1c: float = 188.868,
-        position_2: float = 191.165,
+        phase_3: float = 0.0,
+        phase_4: float = 0.0,
+        position_1: float = 184.273,
+        position_2: float = 186.571,
+        position_3: float = 188.868,
+        position_4: float = 191.165,
         synchronous_de: float = 0.0,
     ) -> list[AccNode]:
         """Add harmonic rf cavity nodes to the lattice.
 
         Parameters
         ----------
-        voltage_{1a, 1b, 1c, 2} : float
+        voltage_{1, 2, 3, 4} : float
             Voltages [GV].
-        hnum_{1a, 1b, 1c, 2} : float
+        hnum_{1, 2, 3, 4} : float
             Harmonic numbers.
-        phase_{1a, 1b, 1c, 2} : float
+        phase_{1, 2, 3, 4} : float
             Phases [rad].
-        position_{1a, 1b, 1c, 2} : float
+        position_{1, 2, 3, 4} : float
             Node positions. We assume zero length.
         synchronous_de : float
             Synchronous particle dE [GeV].
@@ -593,17 +593,17 @@ class SNS_RING(AccModel):
         z_to_phi = 2.0 * math.pi / self.lattice.getLength()
         length = 0.0
 
-        rf_node_1a = RFNode.Harmonic_RFNode(z_to_phi, synchronous_de, hnum_1a, voltage_1a, phase_1a, length, "RF1")
-        rf_node_1b = RFNode.Harmonic_RFNode(z_to_phi, synchronous_de, hnum_1b, voltage_1b, phase_1b, length, "RF1")
-        rf_node_1c = RFNode.Harmonic_RFNode(z_to_phi, synchronous_de, hnum_1c, voltage_1c, phase_1c, length, "RF1")
+        rf_node_1 = RFNode.Harmonic_RFNode(z_to_phi, synchronous_de, hnum_1, voltage_1, phase_1, length, "RF1")
         rf_node_2 = RFNode.Harmonic_RFNode(z_to_phi, synchronous_de, hnum_2, voltage_2, phase_2, length, "RF2")
+        rf_node_3 = RFNode.Harmonic_RFNode(z_to_phi, synchronous_de, hnum_3, voltage_3, phase_3, length, "RF3")
+        rf_node_4 = RFNode.Harmonic_RFNode(z_to_phi, synchronous_de, hnum_4, voltage_4, phase_4, length, "RF4")
 
-        RFLatticeModifications.addRFNode(self.lattice, position_1a, rf_node_1a)
-        RFLatticeModifications.addRFNode(self.lattice, position_1b, rf_node_1b)
-        RFLatticeModifications.addRFNode(self.lattice, position_1c, rf_node_1c)
+        RFLatticeModifications.addRFNode(self.lattice, position_1, rf_node_1)
         RFLatticeModifications.addRFNode(self.lattice, position_2, rf_node_2)
+        RFLatticeModifications.addRFNode(self.lattice, position_3, rf_node_3)
+        RFLatticeModifications.addRFNode(self.lattice, position_4, rf_node_4)
 
-        self.rf_nodes = [rf_node_1a, rf_node_1b, rf_node_1c, rf_node_2]
+        self.rf_nodes = [rf_node_1, rf_node_2, rf_node_3, rf_node_4]
         return self.rf_nodes
 
     def add_injection_chicane_aperture_and_displacement_nodes(self) -> list[AccNode]:
