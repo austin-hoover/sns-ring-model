@@ -553,10 +553,10 @@ class SNS_RING(AccModel):
 
     def add_rf_cavity_nodes(
         self,
-        voltage_1: float = -0.000006,
-        voltage_2: float = +0.0,
-        voltage_3: float = -0.0,
-        voltage_4: float = -0.000004,
+        voltage_1: float = 0.0,
+        voltage_2: float = 0.0,
+        voltage_3: float = 0.0,
+        voltage_4: float = 0.0,
         hnum_1: float = 1.0,
         hnum_2: float = 1.0,
         hnum_3: float = 2.0,
