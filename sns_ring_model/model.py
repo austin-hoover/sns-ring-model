@@ -238,9 +238,9 @@ class SNS_RING(AccModel):
 
         # Read lattice file
         if self.lattice_file == "default":
-            self.lattice_file = self.path.parent.joinpath("mad/sns_ring_mad.lat")
-            self.lattice_file_type = "mad"
-            self.lattice_seq = "RINGINJ"
+            self.lattice_file = self.path.parent.joinpath("madx/sns_ring.lat")
+            self.lattice_file_type = "madx"
+            self.lattice_seq = "rnginj"
             
         if self.lattice_file is not None:
             self.lattice = read_lattice_file(
@@ -274,6 +274,9 @@ class SNS_RING(AccModel):
                 # Set strength manually.
                 factor = 0.25
                 node.setParam("B", factor * 0.6 / (2.0 * node.getLength()))
+
+    def get_lattice(self) -> None:
+        return self.lattice
 
     def set_bunch(self, bunch: Bunch, lostbunch: Bunch = None, params_dict: dict = None) -> None:
         self.bunch = bunch
@@ -606,7 +609,9 @@ class SNS_RING(AccModel):
     def add_injection_chicane_aperture_and_displacement_nodes(self) -> list[AccNode]:
         """Add apertures and displacements to injection chicane.
 
-        [to do] Build dictionary of aperture nodes along with parent nodes,
+        WARNING: This function currently only works with the MAD lattice file. 
+
+        [To do] Build dictionary of aperture nodes along with parent nodes,
         then add them in a loop and register to self.aperture_nodes.
         """
         bunch = self.bunch
@@ -726,7 +731,7 @@ class SNS_RING(AccModel):
 
     def add_collimator_nodes(self) -> None:
         # Make info list to avoid writing position twice. (There is no
-        # Collimator.getPosition() method. This should probably be added.
+        # Collimator.getPosition() method. This should probably be added.)
         collimator_node_info_list = [
             CollimatorNodeInfo(0.60000, 3, 1.00, 2, 0.100, 0.100, 0.0, 0.0, 0.0, 50.3771),
             CollimatorNodeInfo(0.00450, 5, 1.00, 3, 0.100, 0.000, 0.0, 0.0, 0.0, 51.1921),
@@ -772,6 +777,8 @@ class SNS_RING(AccModel):
         raise NotImplementedError
 
     def add_aperture_nodes_around_ring(self) -> None:
+        """WARNING: This function currently only works with the MAD lattice file."""
+
         filename = self.path.parent.joinpath("./data/aperture_node_info.txt")
 
         data = pd.read_csv(filename)
@@ -802,6 +809,7 @@ class SNS_RING(AccModel):
             parent_node.addChildNode(aperture_node, place, part_index)
 
     def add_all_aperture_and_collimator_nodes(self) -> None:
+        """WARNING: This function currently only works with the MAD lattice file."""
         self.add_injection_chicane_aperture_and_displacement_nodes()
         self.add_aperture_nodes_around_ring()
         self.add_collimator_nodes()
