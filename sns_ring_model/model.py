@@ -161,7 +161,7 @@ class AccModel:
 class SNS_RING(AccModel):
     def __init__(
         self,
-        lattice_file: str = "default",
+        lattice_file: str = None,
         lattice_file_type: str = None,
         lattice_seq: str = None,
         inj_x: float = 0.0486,
