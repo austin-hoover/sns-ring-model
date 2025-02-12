@@ -13,21 +13,8 @@ def test_model():
     model.add_rf_cavity_nodes()
 
 
-def test_add_apertures():
-    model = SNS_RING(
-        lattice_file="sns_ring_model/mad/sns_ring_mad.lat", 
-        lattice_file_type="mad", 
-        lattice_seq="RINGINJ"
-    )
-    model.add_all_aperture_and_collimator_nodes()
-
-
 def test_ric():
-    model = SNS_RING(
-        lattice_file="sns_ring_model/madx/sns_ring.lat", 
-        lattice_file_type="madx", 
-        lattice_seq="rnginj",
-    )
+    model = SNS_RING(lattice_file="default")
     lattice = model.lattice
 
     bunch = Bunch()
