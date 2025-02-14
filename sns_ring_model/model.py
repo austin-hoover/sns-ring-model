@@ -820,6 +820,7 @@ class SNS_RING(AccModel):
         dist_y: Any,
         dist_z: Any,
         nparts: int,
+        nparts_max: int = None,
     ) -> None:
         xmin = self.inj_x - 0.005
         xmax = self.inj_x + 0.014722
@@ -828,7 +829,14 @@ class SNS_RING(AccModel):
         limits = (xmin, xmax, ymin, ymax)
         
         self.inj_node = TeapotInjectionNode(
-            nparts, self.bunch, self.lostbunch, limits, dist_x, dist_y, dist_z
+            nparts, 
+            self.bunch, 
+            self.lostbunch, 
+            limits, 
+            dist_x, 
+            dist_y, 
+            dist_z, 
+            nmaxmacroparticles=nparts_max,
         )
         self.lattice.getNodes()[0].addChildNode(self.inj_node, AccNode.ENTRANCE)
         return self.inj_node
