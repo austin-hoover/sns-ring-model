@@ -1,9 +1,17 @@
 """Library for ring injection control."""
+import math
+from typing import Any
+from typing import Callable
+
 import numpy as np
 import scipy.optimize as opt
 
 from orbit.core import orbit_mpi
 from orbit.core.bunch import Bunch
+from orbit.injection import TeapotInjectionNode
+from orbit.injection import JohoTransverse
+from orbit.injection import JohoLongitudinal
+from orbit.injection import SNSESpreadDist
 from orbit.lattice import AccLattice
 from orbit.lattice import AccNode
 from orbit.utils.consts import speed_of_light
@@ -231,5 +239,4 @@ class InjectionController:
         else:
             raise ValueError(f"Invalid method {method}")
         return result.x
-    
-        
+
