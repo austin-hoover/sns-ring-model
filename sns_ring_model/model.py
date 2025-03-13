@@ -243,16 +243,22 @@ class SNS_RING(AccModel):
             self.lattice_seq = "RINGINJ"
             
         if self.lattice_file is not None:
-            self.lattice = read_lattice_file(
-                self.lattice,
-                self.lattice_file,
-                self.lattice_file_type,
-                self.lattice_seq,
-            )
+            self.read_lattice_file(self.lattice_file, self.lattice_file_type, self.lattice_seq)
 
         self.avoid_duplicate_node_names = avoid_duplicate_node_names
         if self.avoid_duplicate_node_names:
             self.rename_nodes_avoid_duplicates()
+
+    def read_lattice_file(self, filename: str, filetype: str, seq: str) -> None:
+        self.lattice_file = filename
+        self.lattice_file_type = filetype
+        self.lattice_seq = seq
+        self.lattice = read_lattice_file(
+            self.lattice,
+            self.lattice_file,
+            self.lattice_file_type,
+            self.lattice_seq,
+        )
 
     def rename_nodes_avoid_duplicates(self) -> None:
         self.lattice = rename_nodes_avoid_duplicates(self.lattice, self.verbose)
