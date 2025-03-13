@@ -154,7 +154,7 @@ def read_lattice_file(lattice: AccLattice, filename: str, filetype: str, seq: st
 
 
 class AccModel:
-    def __init__(self, verbose: int = 1) -> None:
+    def __init__(self, verbose: int = 0) -> None:
         self.verbose = verbose
 
 
@@ -238,9 +238,9 @@ class SNS_RING(AccModel):
 
         # Read lattice file
         if self.lattice_file == "default":
-            self.lattice_file = self.path.parent.joinpath("../madx/outputs/lattice")
-            self.lattice_file_type = "madx"
-            self.lattice_seq = "rnginj"
+            self.lattice_file = self.path.parent.joinpath("../mad/outputs/lattice")
+            self.lattice_file_type = "mad"
+            self.lattice_seq = "RINGINJ"
             
         if self.lattice_file is not None:
             self.lattice = read_lattice_file(

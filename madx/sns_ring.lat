@@ -204,8 +204,8 @@
  QDEE:  Quadrupole,  L=LDEE, K1:=KDEE/Brho;
   QDC:  Quadrupole,  L=LDC,  K1:=KDC/Brho;
   QFC:  Quadrupole,  L=LFC,  K1:=KFC/Brho;
- QF26:  Quadrupole,  L=LF26, K1:=KF26/Brho;
- QD26:  Quadrupole,  L=LD26, K1:=KD26/Brho;
+ QF26:  Quadrupole,  L=LF26,   K1:=KF26/Brho;
+ QD26:  Quadrupole,  L=LD26,   K1:=KD26/Brho;
 !------------------------------------------------------------  
 ! Generic Whole-Quadrupoles  
 !------------------------------------------------------------  
@@ -1103,9 +1103,9 @@ DDCHV_X13b: Drift, L=DDCHV_X13->L - DDCHV_X13a->L;
 !------------------------------------------------------------
 !Begin defining first portion of straight section (primary collimators);
 LCOLSSB1:=UU9->L+2*UU->L+UU10->L;
-Col1Shld: COLLIMATOR, L=0.6;
-Col2: COLLIMATOR, L=1.8;
-Col2Shld: COLLIMATOR, L=0.32;
+Col1Shld: DRIFT, L=0.6;
+Col2: DRIFT, L=1.8;
+Col2Shld: DRIFT, L=0.32;
 ScpT: DRIFT, L=0.0045;
 ScpC: DRIFT, L=0.01455;
 DriftScpA: DRIFT, L=0.0254;
@@ -1124,8 +1124,8 @@ Drift4: DRIFT, L=LCOLSSB1-(Col1Shld->L+Col2->L+4*ScpT->L+4*ScpC->L
 
 !Begin defining second portion of straight section (secondary collimators)
 LCOLSSB2:=4*WW->L;
-Col3_4: COLLIMATOR, L=1.19;
-Col3_4Shld: COLLIMATOR, L=1.01;
+Col3_4: DRIFT, L=1.19;
+Col3_4Shld: DRIFT, L=1.01;
 Drift5: DRIFT, L=2.10-(QTV_B11->L/2.0+Col3_4Shld->L);
 Drift6: DRIFT, L=(8.85-(2*Col3_4->L+2*Col3_4Shld->L));
 Drift6_short: DRIFT, L=Drift6->L/(10.0);
@@ -1420,4 +1420,3 @@ SSSBCol: Line = (5*Drift1_short,Col1Shld,Drift2,ScpT,ScpC,DriftScpA,
    RNGINJ: Line = (SSISINJR,ARCB,SPBB,SPCC,SPDD,SSISINJL);
 !------------------------------------------------------------  
 Return;
-

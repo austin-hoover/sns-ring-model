@@ -39,3 +39,20 @@ def test_ric():
     assert np.all(np.abs(inj_coords_targ - inj_coords_calc) < 0.01)
 
     
+
+if __name__ == "__main__":
+    model = SNS_RING(lattice_file="default")
+    model.set_fringe(False)
+    lattice = model.lattice
+
+    from orbit.teapot import TEAPOT_MATRIX_Lattice
+    from orbit.utils.consts import mass_proton
+    from pprint import pprint
+
+    bunch = Bunch()
+    bunch.mass(mass_proton)
+    bunch.getSyncParticle().kinEnergy(1.300)
+    matrix_lattice = TEAPOT_MATRIX_Lattice(lattice, bunch)
+    lattice_params = matrix_lattice.getRingParametersDict()
+
+    pprint(lattice_params)
