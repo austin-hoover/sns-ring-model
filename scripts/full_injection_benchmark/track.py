@@ -59,6 +59,7 @@ from utils import read_longitudinal_impedance_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--apertures", type=int, default=0)
+parser.add_argument("--foil", type=int, default=0)
 parser.add_argument("--imp-xy", type=int, default=0)
 parser.add_argument("--imp-xy-bins", type=int, default=64)
 parser.add_argument("--imp-xy-macros-min", type=int, default=1000)
@@ -244,7 +245,9 @@ inj_node = TeapotInjectionNode(args.macros_per_turn, bunch, lostbunch, inj_param
 
 start_node = nodes[0]
 start_node.addChildNode(inj_node, AccNode.ENTRANCE)
-start_node.addChildNode(foil_node, AccNode.ENTRANCE)
+
+if args.foil:
+    start_node.addChildNode(foil_node, AccNode.ENTRANCE)
 
 
 # Add apertures and displacements for injection chicane magnets
