@@ -311,7 +311,7 @@ class SNS_RING(AccModel):
         dist_x: Any,
         dist_y: Any,
         dist_z: Any,
-        n_parts_max: int = None,
+        n_parts_max: int = -1,
         parent_index: int = 0,
     ) -> AccNode:
         """Add injection node as child node.
