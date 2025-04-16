@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sns-ring-model"
-version = "0.0.2"
-description = "PyORBIT SNS accelerator models"
+version = "0.0.3"
+description = "PyORBIT model of SNS accumulator ring"
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
