@@ -18,15 +18,17 @@ from orbit.utils.consts import speed_of_light
 
 
 def get_momentum(mass: float, kin_energy: float) -> float:
+    """Return momentum from mass [GeV / c^2] and kinetic energy [GeV]."""
     return np.sqrt(kin_energy * (kin_energy + 2.0 * mass))
 
 
 def get_magnetic_rigidity(mass: float, kin_energy: float) -> float:
-    brho = 1.00e09 * get_momentum(mass=mass, kin_energy=kin_energy) / speed_of_light
-    return brho
-
+    """Return magnetic rigidity (Brho) from mass [GeV / c^2] and kinetic energy [GeV]."""
+    momentum = get_momentum(mass=mass, kin_energy=kin_energy)
+    return factor * momentum / speed_of_light
 
 def get_node_for_name_any_case(lattice: AccLattice, name: str) -> AccNode:
+    """Get node by name, case-insensitive."""
     nodes = lattice.getNodes()
     node_names = [node.getName() for node in nodes]
     if name not in node_names:
@@ -39,14 +41,29 @@ def get_node_for_name_any_case(lattice: AccLattice, name: str) -> AccNode:
     return lattice.getNodeForName(name)
 
 
-def get_inj_kicker_angle_limits(mass: float, kin_energy: float) -> tuple[np.ndarray]:
-    # These are the maximum angles at 1.3 GeV:
+def get_inj_kicker_angle_limits(mass: float, kin_energy: float) -> tuple[np.ndarray, np.ndarray]:
+    """Return limits on injection kicker angles.
+
+    Parameters
+    ----------
+    mass: float
+        Particle mass [GeV].
+    kin_energy: float
+        Particle kinetic energy [GeV].
+
+    Returns
+    -------
+    min_angles, max_angles: np.ndarray
+        Array of minimum and maximum kicker angles [rad].
+    """
+    
+    # Maximum angles at 1.3 GeV:
     min_angles = 1.15 * np.array([0.0, 0.0, -7.13, -7.13, -7.13, -7.13, 0.0, 0.0])  # [mrad]
     max_angles = 1.15 * np.array([12.84, 12.84, 0.0, 0.0, 0.0, 0.0, 12.84, 12.84])  # [mrad]
     min_angles *= 0.001  # [mrad] -> [rad]
     max_angles *= 0.001  # [mrad] -> [rad]
 
-    # Scale the kicker limits to the current energy
+    # Scale limits to the specified energy
     brho_old = get_magnetic_rigidity(mass=mass, kin_energy=1.300)
     brho_new = get_magnetic_rigidity(mass=mass, kin_energy=kin_energy)
     scale = brho_old / brho_new
@@ -56,6 +73,20 @@ def get_inj_kicker_angle_limits(mass: float, kin_energy: float) -> tuple[np.ndar
 
 
 def get_inj_corrector_angle_limits(mass: float, kin_energy: float) -> tuple[float]:
+    """Return limits on orbit correctors in injection region.
+
+    Parameters
+    ----------
+    mass: float
+        Particle mass [GeV].
+    kin_energy: float
+        Particle kinetic energy [GeV].
+
+    Returns
+    -------
+    min_angles, max_angles: np.ndarray
+        Array of minimum and maximum corrector angles [rad].
+    """
     max_angle = 1.5e-03  # [rad]
     min_angle = -max_angle
     brho_old = get_magnetic_rigidity(mass=mass, kin_energy=1.300)
@@ -76,7 +107,19 @@ class InjectionController:
         inj_mid: str = "injm1",
         inj_stop: str = "bpm_b01",
     ) -> None:
-        """Constructor."""
+        """Constructor.
+        
+        Parameters
+        ----------
+        lattice: AccLattice
+            The accelerator lattice representing the SNS Ring.
+        bunch: Bunch
+            Bunch with correct energy and mass used for single particle tracking.
+            This bunch will copied, so it does not need to be empty.
+        inj_start, inj_stop, inj_mid: str
+            First, last, and middle point in injection region. The PyORBIT lattice
+            begins from the mid point and circles back to inj_start.
+        """
         self.mpi_comm = orbit_mpi.mpi_comm.MPI_COMM_WORLD
         self.mpi_rank = orbit_mpi.MPI_Comm_rank(self.mpi_comm)
 
@@ -240,3 +283,73 @@ class InjectionController:
             raise ValueError(f"Invalid method {method}")
         return result.x
 
+
+# Injected distribution
+
+def make_dist_joho(
+    order: float,
+    alpha: float,
+    beta: float,
+    emittance: float,
+    centerpos: float,
+    centermom: float,
+) -> JohoTransverse:
+    """Utility: make transverse Joho distribution."""
+    emitlim = emittance * 2.0 * (order + 1.0)
+    dist = JohoTransverse(order, alpha, beta, emitlim, centerpos, centermom)
+    return dist
+
+
+def make_dist_sns_espread(
+    bunch: Bunch,
+    lattice: AccLattice,
+    zlim: float = (40.0 / 64.0),
+    tailfraction: float = 0.0,
+    esigma: float = 0.0005,
+    etrunc: float = 1.0,
+    emin: float = -0.0025,
+    emax: float = +0.0025,
+    ecmean: float = 0.0,
+    ecsigma: float = 0.000000001,
+    ectrunc: float = 1.0,
+    ecmin: float = -0.0035,
+    ecmax: float = +0.0035,
+    ecdrifti: float = 0.0,
+    ecdriftf: float = 0.0,
+    esnu: float = 100.0,
+    esphase: float = 0.0,
+    esmax: float = 0.0, 
+) -> SNSESpreadDist:
+    """Utility: make longitudinal `SNSESpreadDist` distribution."""
+
+    zlim = np.multiply(zlim, 0.5 * lattice.getLength())
+    zmin = -zlim
+    zmax = +zlim
+
+    sync_part = bunch.getSyncParticle()
+    emean = sync_part.kinEnergy()
+    emin += sync_part.kinEnergy()
+    emax += sync_part.kinEnergy()
+
+    tturn = lattice.getLength() / (sync_part.beta() * speed_of_light)
+
+    drifttime = 1000.0 * (1000) * tturn
+    ecparams = (ecmean, ecsigma, ectrunc, ecmin, ecmax, ecdrifti, ecdriftf, drifttime)
+    nulltime = 0.0
+    esparams = (esnu, esphase, esmax, nulltime)
+
+    dist = SNSESpreadDist(
+        lattice.getLength(),
+        zmin,
+        zmax,
+        tailfraction,
+        sync_part,
+        emean,
+        esigma,
+        etrunc,
+        emin,
+        emax,
+        ecparams,
+        esparams,
+    )
+    return dist
