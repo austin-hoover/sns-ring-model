@@ -398,22 +398,43 @@ class SNS_RING(AccModel):
         boundary_modes: int = 32,
         boundary_points: int = 128,
         boundary_radius: float = 0.220,
+        long: bool = False,
     ) -> list[AccNode]:
         """Add transverse space charge nodes throughout the ring.
 
         Parameters
         ----------
-        solver: str
+        solver: {"slicebyslice", "2p5d"}
+            Type of solver.
+            "slice-by-slice": orbit.core.spacecharge.SpaceChargeCalcSliceBySlice2D
+            "2p5d": orbit.core.spacecharge.SpaceChargeCalc2p5D
         gridx, gridy: int
             Transverse x-y grid resolution.
         gridz: int
             Number of longitudinal slices.
         path_length_min: float
+            Minimum distance between solver nodes.
+        n_macros_min: int
+            Minimum number of macroparticles. No space charge kick is applied
+            if there not enough macroparticles.
+        boundary_modes: int
+            Number of modes in 2D boundary calculation. The boundary class is 
+            orbit.core.spacecharge.Boundary2D.
+        boundary_points: int
+            Number of points on circular conducting boundary.
+        boundary_radius: float
+            Radius of circular conducting boundary. 
+        long: float
+            Whether to use longitudinal tracking when solver="slicebyslice". The
+            longitudinal tracking is only enabled when a conducting boundary is
+            used. This is handled automatically by the SpaceChargeCalcSliceBySlice2D
+            class, so it's okay if this value is true when there is no boundary.
 
         Returns
         -------
-        list[orbit.space_charge.SC2p5DAccNodes]
-        list[orbit.space_charge.SC2DSliceBySliceAccNodes]
+        list[AccNode]
+            A list of space charge nodes added to the lattice. These are also stored as
+            `self.transverse_spacecharge_nodes`.
         """
         if boundary:
             boundary = Boundary2D(
@@ -424,15 +445,16 @@ class SNS_RING(AccModel):
 
         self.transverse_spacecharge_nodes = []
         if solver == "2p5d":
-            calculator = SpaceChargeCalc2p5D(gridx, gridy, gridz)
+            sc_calc = SpaceChargeCalc2p5D(gridx, gridy, gridz)
             self.transverse_spacecharge_nodes = setSC2p5DAccNodes(
                 self.lattice,
                 path_length_min,
-                calculator,
+                sc_calc,
                 boundary=boundary,
             )
         elif solver in ["slicebyslice", "slice", "sbs"]:
-            calculator = SpaceChargeCalcSliceBySlice2D(gridx, gridy, gridz)
+            sc_calc = SpaceChargeCalcSliceBySlice2D(gridx, gridy, gridz)
+            sc_calc.longTracking(int(long))
             self.transverse_spacecharge_nodes = setSC2DSliceBySliceAccNodes(
                 self.lattice,
                 path_length_min,
@@ -449,7 +471,7 @@ class SNS_RING(AccModel):
         position: float = 124.0,
         impedance: list[float] = None,
     ) -> AccNode:
-        """Add a longitudinal space charge at one position in the ring.
+        """Add 1D longitudinal space charge node at specified position.
 
         Parameters
         ----------
