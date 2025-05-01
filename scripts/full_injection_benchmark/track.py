@@ -171,15 +171,17 @@ for node in nodes:
 # Set injection kicker waveforms
 # --------------------------------------------------------------------------------------
 
-hkick10_node = nodes[645]
-vkick10_node = nodes[647]
-hkick11_node = nodes[649]
-vkick11_node = nodes[651]
-hkick12_node = nodes[18]
-vkick12_node = nodes[16]
-hkick13_node = nodes[22]
-vkick13_node = nodes[20]
+# Collect kicker nodes
+hkick10_node = lattice.getNodeForName("IKICKH_A10")
+vkick10_node = lattice.getNodeForName("IKICKV_A10")
+hkick11_node = lattice.getNodeForName("IKICKH_A11")
+vkick11_node = lattice.getNodeForName("IKICKV_A11")
+hkick12_node = lattice.getNodeForName("IKICKH_A12")
+vkick12_node = lattice.getNodeForName("IKICKV_A12")
+hkick13_node = lattice.getNodeForName("IKICKH_A13")
+vkick13_node = lattice.getNodeForName("IKICKV_A13")
 
+# Set kicker strengths
 strength_hkicker10 = 14.04e-03
 strength_vkicker10 =  8.84e-03
 strength_hkicker11 = -4.28e-03
@@ -189,6 +191,16 @@ strength_vkicker12 = -5.32217284098e-03
 strength_hkicker13 = 14.092989681e-03
 strength_vkicker13 =  9.0098984536e-03
 
+hkick10_node.setParam("kx", strength_hkicker10)
+vkick10_node.setParam("ky", strength_vkicker10)
+hkick11_node.setParam("kx", strength_hkicker11)
+vkick11_node.setParam("ky", strength_vkicker11)
+hkick12_node.setParam("kx", strength_hkicker12)
+vkick12_node.setParam("ky", strength_vkicker12)
+hkick13_node.setParam("kx", strength_hkicker13)
+vkick13_node.setParam("ky", strength_vkicker13)
+
+# Set kicker waveforms
 tih = -0.001
 tiv = -0.002
 tf =  0.001
@@ -199,15 +211,6 @@ sfv =  0.406
 sync_part = bunch.getSyncParticle()
 hkickerwave = SquareRootWaveform(sync_part, lattice.getLength(), tih, tf, si, sfh)
 vkickerwave = SquareRootWaveform(sync_part, lattice.getLength(), tiv, tf, si, sfv)
-
-hkick10_node.setParam("kx", strength_hkicker10)
-vkick10_node.setParam("ky", strength_vkicker10)
-hkick11_node.setParam("kx", strength_hkicker11)
-vkick11_node.setParam("ky", strength_vkicker11)
-hkick12_node.setParam("kx", strength_hkicker12)
-vkick12_node.setParam("ky", strength_vkicker12)
-hkick13_node.setParam("kx", strength_hkicker13)
-vkick13_node.setParam("ky", strength_vkicker13)
 
 hkick10_node.setWaveform(hkickerwave)
 vkick10_node.setWaveform(vkickerwave)
