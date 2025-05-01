@@ -476,6 +476,9 @@ class SNS_RING(AccModel):
                 sc_calc,
                 boundary=boundary
             )
+        else:
+            raise ValueError(f"Invalid space charge solver {solver}")
+            
         return self.transverse_spacecharge_nodes
 
     def add_longitudinal_spacecharge_node(
