@@ -1,0 +1,121 @@
+timestamp: ${now:%y%m%d%H%M%S}
+hydra:
+    run:
+        dir: ./outputs/${timestamp}
+    output_subdir: "config"
+
+bunch:
+    power: 1.7  # [MW]
+    energy: 1.3  # [GeV]
+    frequency: 60.0  # [Hz]
+
+lattice:
+    apertures: false
+    foil: false
+    rf: true
+    spacecharge: 
+        xy: false
+        z: false
+    impedance:
+        xy: false
+        z: false
+    max_part_length: null
+
+foil:
+    thickness: 390.0
+    scatter: "full"
+    
+impedance:
+    xy:
+        n_bins: 64
+        n_macros_min: 1000
+    z: 
+        n_bins: 64
+        n_macros_min: 1000
+    
+inj:
+    x:
+        order: 9.0
+        alpha: 0.064
+        beta: 10.056
+        emittance: 0.221e-06
+    y:
+        order: 9.0
+        alpha: 0.063
+        beta: 10.815
+        emittance: 0.221e-06
+    z: 
+        zlim: 0.388
+        tailfraction: 0.0
+        esigma: 0.0005
+        etrunc: 1.0
+        emin: -0.0025
+        emax:  0.0025
+        ecmean: 0.0
+        ecsigma: 0.000000001
+        ectrunc: 1.0
+        ecmin: -0.0035
+        ecmax:  0.0035
+        ecdrifti: 0.0
+        ecdriftf: 0.0
+        esnu: 100.0
+        esphase: 0.0
+        esmax: 0.0
+
+kick:
+    strength:
+        hkick10: 14.04e-03
+        vkick10:  8.84e-03
+        hkick11: -4.28e-03
+        vkick11: -5.06e-03
+        hkick12: -4.36727974875e-03
+        vkick12: -5.32217284098e-03
+        hkick13: 14.092989681e-03
+        vkick13:  9.0098984536e-03
+    wave:
+        tih: -0.001
+        tiv: -0.002
+        tf: 0.001
+        si: 1.0
+        sfh: 0.457
+        sfv: 0.406
+
+rf:
+    voltage_1: 0.000006
+    voltage_2: 0.0
+    voltage_3: -0.000004
+    voltage_4: 0.0
+    hnum_1: 1.0
+    hnum_2: 1.0
+    hnum_3: 2.0
+    hnum_4: 2.0
+    phase_1: 0.0
+    phase_2: 0.0
+    phase_3: 0.0
+    phase_4: 0.0
+    position_1: 184.273
+    position_2: 186.571
+    position_3: 188.868
+    position_4: 191.165
+    synchronous_de: 0.0
+
+spacecharge:
+    xy:
+        solver: "slicebyslice"
+        gridx: 128
+        gridy: 128
+        gridz: 64
+        path_length_min: 1.00e-08
+        n_macros_min: 1000
+        boundary: true
+        boundary_modes: 32
+        boundary_points: 128
+        boundary_radius: 0.220
+        long: false
+    z:
+        n_bins: 64
+        n_macros_min: 1000
+
+turns: 1044
+macros_per_turn: 100
+write_bunch_freq: 250
