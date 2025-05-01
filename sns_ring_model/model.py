@@ -284,6 +284,15 @@ class SNS_RING(AccModel):
     def get_lattice(self) -> None:
         return self.lattice
 
+    def set_max_part_length(self, max_length: float) -> None:
+        if not max_length:
+            return
+        for node in self.lattice.getNodes():
+            length = node.getLength()
+            if length > max_length:            
+                nparts = 1 + int(length / max_length)
+                node.setnParts(nparts)
+
     def set_bunch(self, bunch: Bunch, lostbunch: Bunch = None, params_dict: dict = None) -> None:
         self.bunch = bunch
 
@@ -332,12 +341,16 @@ class SNS_RING(AccModel):
         -------
         orbit.injection.TeapotInjectionNode
         """
+        if n_parts_max is None:
+            n_parts_max = -1
+            
         boundary = [
             self.foil_xmin,
             self.foil_xmax,
             self.foil_ymin,
             self.foil_ymax,
         ]
+        
         self.injection_node = TeapotInjectionNode(
             n_parts,
             self.bunch,
@@ -460,7 +473,7 @@ class SNS_RING(AccModel):
             self.transverse_spacecharge_nodes = setSC2DSliceBySliceAccNodes(
                 self.lattice,
                 path_length_min,
-                calculator,
+                sc_calc,
                 boundary=boundary
             )
         return self.transverse_spacecharge_nodes
