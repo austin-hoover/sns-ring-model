@@ -322,7 +322,9 @@ class SNS_RING(AccModel):
             Number of macroparticles per injection.
         dist_{x, y, z}: Any
             Must implement `(x, xp) = getCoordinates()`, which generates a random
-            coordinate from the two-dimensional position-momentum distribution.
+            coordinate from the two-dimensional position-momentum distribution. We 
+            assume the distribution can be factored as f(x, xp, y, yp, z, dE) = 
+            f(x, xp)f(y, yp)f(z, dE).
         parent_index: int
             Index of parent node. The injection node is added as a child of this node.
             
@@ -841,33 +843,6 @@ class SNS_RING(AccModel):
         self.add_injection_chicane_aperture_and_displacement_nodes()
         self.add_aperture_nodes_around_ring()
         self.add_collimator_nodes()
-
-    def add_inj_node(
-        self,
-        dist_x: Any,
-        dist_y: Any,
-        dist_z: Any,
-        nparts: int,
-        nparts_max: int = None,
-    ) -> None:
-        xmin = self.inj_x - 0.005
-        xmax = self.inj_x + 0.014722
-        ymin = self.inj_y - 0.005
-        ymax = self.inj_y + 0.020
-        limits = (xmin, xmax, ymin, ymax)
-        
-        self.inj_node = TeapotInjectionNode(
-            nparts, 
-            self.bunch, 
-            self.lostbunch, 
-            limits, 
-            dist_x, 
-            dist_y, 
-            dist_z, 
-            nmaxmacroparticles=nparts_max,
-        )
-        self.lattice.getNodes()[0].addChildNode(self.inj_node, AccNode.ENTRANCE)
-        return self.inj_node
 
     def get_solenoid_strengths(self) -> np.ndarray:
         return np.ndarray([node.getParam("B") for node in self.solenoid_nodes])
