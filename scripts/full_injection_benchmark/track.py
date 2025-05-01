@@ -1054,7 +1054,7 @@ if args.sc_xy:
         )
     elif args.sc_xy_method in ["slicebyslice", "slice", "sbs"]:
         sc_calc = SpaceChargeCalcSliceBySlice2D(args.sc_xy_gridx, args.sc_xy_gridy, args.sc_xy_gridz)
-        if (boundary is not None) and (args.sc_z_method == "slicebyslice"):
+        if (boundary is not None) and (args.sc_z_method == "slicebyslice" and args.sc_z):
             sc_calc.longTracking(True)
             
         sc_nodes = setSC2DSliceBySliceAccNodes(
