@@ -48,6 +48,7 @@ from utils import get_intensity
 @hydra.main(version_base=None, config_path=".", config_name="config")
 def main(cfg : DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
+    sys.stdout.flush()
     
     # Setup
     # --------------------------------------------------------------------------------------
