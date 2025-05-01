@@ -1,4 +1,8 @@
-"""Full SNS injection simulation."""
+"""Full SNS injection simulation.
+
+This example is adapted from an old PyORBIT2 benchmark script maintained by Jeff Holmes (ORNL).
+Most parameters are hard-coded.
+"""
 import argparse
 import math
 import os
@@ -52,6 +56,7 @@ from orbit.utils.consts import speed_of_light
 # local
 from utils import read_transverse_impedance_file
 from utils import read_longitudinal_impedance_file
+from utils import get_intensity
 
 
 # Parse arguments
@@ -59,27 +64,37 @@ from utils import read_longitudinal_impedance_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--apertures", type=int, default=0)
+
 parser.add_argument("--foil", type=int, default=0)
+parser.add_argument("--foil-scatter-choice", type=int, default=0)
+
 parser.add_argument("--imp-xy", type=int, default=0)
 parser.add_argument("--imp-xy-bins", type=int, default=64)
 parser.add_argument("--imp-xy-macros-min", type=int, default=1000)
+
 parser.add_argument("--imp-z", type=int, default=0)
 parser.add_argument("--imp-z-bins", type=int, default=128)
 parser.add_argument("--imp-z-macros-min", type=int, default=1000)
+
 parser.add_argument("--sc-xy", type=int, default=0)
 parser.add_argument("--sc-xy-macros-min", type=int, default=1000)
-parser.add_argument("--sc-xy-solver", type=str, default="slicebyslice", choices=["slicebyslice", "2p5d"])
+parser.add_argument("--sc-xy-method", type=str, default="slicebyslice", choices=["slicebyslice", "2p5d"])
 parser.add_argument("--sc-xy-gridx", type=int, default=128)
 parser.add_argument("--sc-xy-gridy", type=int, default=128)
 parser.add_argument("--sc-xy-gridz", type=int, default=64)
 parser.add_argument("--sc-xy-boundary", type=int, default=1)
 parser.add_argument("--sc-xy-boundary-modes", type=int, default=32)
 parser.add_argument("--sc-xy-boundary-points", type=int, default=128)
+
 parser.add_argument("--sc-z", type=int, default=0)
+parser.add_argument("--sc-z-method", type=str, default="slicebyslice", choices=["slicebyslice", "1d"])
 parser.add_argument("--sc-z-bins", type=int, default=64)
 parser.add_argument("--sc-z-macros-min", type=int, default=1000)
-parser.add_argument("--macros-per-turn", type=int, default=100, help="max 2000")
+
+parser.add_argument("--max-part-length", type=float, default=None)
+
 parser.add_argument("--turns", type=int, default=1044)
+parser.add_argument("--macros-per-turn", type=int, default=100, help="max 2000")
 parser.add_argument("--write-bunch-freq", type=int, default=250)
 args = parser.parse_args()
 
@@ -87,22 +102,36 @@ args = parser.parse_args()
 # Setup
 # --------------------------------------------------------------------------------------
 
+mpi_comm = orbit_mpi.mpi_comm.MPI_COMM_WORLD
+mpi_rank = orbit_mpi.MPI_Comm_rank(mpi_comm)
+mpi_size = orbit_mpi.MPI_Comm_size(mpi_comm)
+
 timestamp = time.strftime("%y%m%d%H%M%S")
+timestamp = int(timestamp)
+timestamp = orbit_mpi.MPI_Bcast(timestamp, orbit_mpi.mpi_datatype.MPI_INT, 0, mpi_comm)
+timestamp = str(timestamp)
 
 output_dir = os.path.join("outputs", timestamp)
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-
-# MPI
-_mpi_comm = orbit_mpi.mpi_comm.MPI_COMM_WORLD
-_mpi_rank = orbit_mpi.MPI_Comm_rank(_mpi_comm)
-_mpi_size = orbit_mpi.MPI_Comm_size(_mpi_comm)
+if mpi_rank == 0:
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
 
 # Initialize bunch
 # --------------------------------------------------------------------------------------
 
-minipulse_intensity = 2.163e+11
+power = 1.7  # [MW]
+energy = 1.3  # [GeV]
+frequency = 60.0  # [Hz]
+
+intensity = get_intensity(
+    power=(power * 1.00e+06),
+    energy=(energy * 1.00e+09), 
+    frequency=frequency,
+)
+
+minipulses_per_pulse = 1044
+minipulse_intensity = intensity / minipulses_per_pulse
 macrosize = minipulse_intensity / args.macros_per_turn
 
 bunch = Bunch()
@@ -124,6 +153,14 @@ params_dict["lostbunch"] = lostbunch
 lattice = TEAPOT_Ring()
 lattice.readMAD("inputs/sns_ring_mad.lattice", "RINGINJ")
 lattice.initialize()
+
+if args.max_part_length:
+    max_length = args.max_part_length
+    for node in lattice.getNodes():
+        length = node.getLength()
+        if length > max_length:            
+            nparts = 1 + int(length / max_length)
+            node.setnParts(nparts)
 
 nodes = lattice.getNodes()
 
@@ -238,7 +275,7 @@ foil_ymin = ycenterpos - 0.005
 foil_ymax = ycenterpos + 0.020
 foil_thickness = 390.0
 foil_node = TeapotFoilNode(foil_xmin, foil_xmax, foil_ymin, foil_ymax, foil_thickness)
-foil_node.setScatterChoice(0)
+foil_node.setScatterChoice(args.foil_scatter_choice)
 
 inj_params = (foil_xmin, foil_xmax, foil_ymin, foil_ymax)
 inj_node = TeapotInjectionNode(args.macros_per_turn, bunch, lostbunch, inj_params, inj_dist_x, inj_dist_y, inj_dist_z)
@@ -970,22 +1007,22 @@ if args.imp_xy:
     addImpedanceNode(lattice, position, impedance_node)
 
 
-
 # Add longitudinal space charge node
 # --------------------------------------------------------------------------------------
 
-b_over_a = 10.0 / 3.0
-n_bins = args.sc_z_bins
-n_macros_min = args.sc_z_macros_min
-position = 124.0
-
-impedance = [complex(0.0, 0.0) for _ in range(n_bins // 2)]
-
-sc_node_long = SC1D_AccNode(b_over_a, lattice.getLength(), n_macros_min, 1, n_bins)
-sc_node_long.assignImpedance(impedance)
-
-if args.sc_z:
-    addLongitudinalSpaceChargeNode(lattice, position, sc_node_long)
+if args.sc_z_method == "1D":
+    b_over_a = 10.0 / 3.0
+    n_bins = args.sc_z_bins
+    n_macros_min = args.sc_z_macros_min
+    position = 124.0
+    
+    impedance = [complex(0.0, 0.0) for _ in range(n_bins // 2)]
+    
+    sc_node_long = SC1D_AccNode(b_over_a, lattice.getLength(), n_macros_min, 1, n_bins)
+    sc_node_long.assignImpedance(impedance)
+    
+    if args.sc_z:
+        addLongitudinalSpaceChargeNode(lattice, position, sc_node_long)
 
 
 # Add transverse space charge nodes
@@ -1007,7 +1044,7 @@ sc_path_length_min = 1.00e-08
 
 sc_nodes = []
 if args.sc_xy:
-    if args.sc_xy_solver == "2p5d":
+    if args.sc_xy_method == "2p5d":
         sc_calc = SpaceChargeCalc2p5D(args.sc_xy_gridx, args.sc_xy_gridy, args.sc_xy_gridz)
         sc_nodes = setSC2p5DAccNodes(
             lattice,
@@ -1015,19 +1052,18 @@ if args.sc_xy:
             sc_calc,
             boundary=boundary,
         )
-    elif args.sc_xy_solver in ["slicebyslice", "slice", "sbs"]:
+    elif args.sc_xy_method in ["slicebyslice", "slice", "sbs"]:
         sc_calc = SpaceChargeCalcSliceBySlice2D(args.sc_xy_gridx, args.sc_xy_gridy, args.sc_xy_gridz)
+        if (boundary is not None) and (args.sc_z_method == "slicebyslice"):
+            sc_calc.longTracking(True)
+            
         sc_nodes = setSC2DSliceBySliceAccNodes(
             lattice,
             sc_path_length_min,
             sc_calc,
             boundary=boundary
         )
-
-
-# Add diagnostic nodes
-# --------------------------------------------------------------------------------------
-
+            
 
 # Track bunch
 # --------------------------------------------------------------------------------------
@@ -1047,7 +1083,8 @@ for turn_index in range(args.turns):
     x_rms = np.sqrt(twiss_calc.getCorrelation(0, 0)) * 1000.0
     y_rms = np.sqrt(twiss_calc.getCorrelation(2, 2)) * 1000.0
 
-    if _mpi_rank == 0:
+    # Print update message
+    if mpi_rank == 0:
         message = ""
         message += "turn={:04.0f} ".format(turn_index + 1)
         message += "time={:0.3f} ".format(time_ellapsed)
@@ -1057,10 +1094,11 @@ for turn_index in range(args.turns):
         print(message)
         sys.stdout.flush()
 
+    # Write bunch to file
     if (turn_index % args.write_bunch_freq == 0) or (turn_index == args.turns - 1):
         filename = "bunch_{:04.0f}".format(turn_index)
         filename = os.path.join(output_dir, filename)
-        if _mpi_rank == 0:
+        if mpi_rank == 0:
             print(filename)
             sys.stdout.flush()
         bunch.dumpBunch(filename)
